@@ -11,8 +11,8 @@ export const DEFAULT_LOCAL_SETTINGS: LocalSettings = {
   },
 };
 
-const LOCAL_SETTINGS_KEY = "deerflow.local-settings";
-const THREAD_MODEL_KEY_PREFIX = "deerflow.thread-model.";
+export const LOCAL_SETTINGS_KEY = "deerflow.local-settings";
+export const THREAD_MODEL_KEY_PREFIX = "deerflow.thread-model.";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
@@ -77,11 +77,10 @@ export function saveThreadModelName(
   localStorage.setItem(key, modelName);
 }
 
-function applyThreadModelOverride(
+export function applyThreadModelOverride(
   settings: LocalSettings,
-  threadId?: string,
+  threadModelName: string | undefined,
 ): LocalSettings {
-  const threadModelName = threadId ? getThreadModelName(threadId) : undefined;
   if (!threadModelName) {
     return settings;
   }
@@ -108,21 +107,9 @@ export function getLocalSettings(): LocalSettings {
   return DEFAULT_LOCAL_SETTINGS;
 }
 
-export function getThreadLocalSettings(threadId: string): LocalSettings {
-  return applyThreadModelOverride(getLocalSettings(), threadId);
-}
-
 export function saveLocalSettings(settings: LocalSettings) {
   if (!isBrowser()) {
     return;
   }
   localStorage.setItem(LOCAL_SETTINGS_KEY, JSON.stringify(settings));
-}
-
-export function saveThreadLocalSettings(
-  threadId: string,
-  settings: LocalSettings,
-) {
-  saveLocalSettings(settings);
-  saveThreadModelName(threadId, settings.context.model_name);
 }
