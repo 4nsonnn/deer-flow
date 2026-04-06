@@ -2,7 +2,6 @@ import {
   DEFAULT_LOCAL_SETTINGS,
   LOCAL_SETTINGS_KEY,
   THREAD_MODEL_KEY_PREFIX,
-  applyThreadModelOverride,
   getLocalSettings,
   getThreadModelName,
   saveLocalSettings,
@@ -133,22 +132,19 @@ export function updateThreadSettings<K extends keyof LocalSettings>(
   ensureBaseSettingsLoaded();
   ensureStorageListenerRegistered();
 
-  const currentThreadSettings = applyThreadModelOverride(
-    baseSettings,
-    getThreadModelSnapshot(threadId),
-  );
-  const nextThreadSettings = mergeSettingsSection(
-    currentThreadSettings,
-    key,
-    value,
-  );
-
-  baseSettings = nextThreadSettings;
+  const nextBaseSettings = mergeSettingsSection(baseSettings, key, value);
+  baseSettings = nextBaseSettings;
   saveLocalSettings(baseSettings);
 
-  const threadModelName = nextThreadSettings.context.model_name;
-  threadModelNames.set(threadId, threadModelName);
-  saveThreadModelName(threadId, threadModelName);
+  if (
+    key === "context" &&
+    Object.prototype.hasOwnProperty.call(value, "model_name")
+  ) {
+    const contextValue = value as Partial<LocalSettings["context"]>;
+    const threadModelName = contextValue.model_name;
+    threadModelNames.set(threadId, threadModelName);
+    saveThreadModelName(threadId, threadModelName);
+  }
 
   emitChange();
 }
